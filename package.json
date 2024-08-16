@@ -1,0 +1,22 @@
+{
+  "name": "nestjs-ecs-cdk",
+  "version": "1.0.0",
+  "description": "This project demonstrates the deployment of a NestJS application on Amazon Elastic Container Service (ECS) using Fargate.",
+  "packageManager": "npm@10.1.0",
+  "scripts": {
+    "build": "turbo build",
+    "test": "turbo test",
+    "start:dev": "turbo start:dev",
+    "start:prod": "turbo start:prod"
+  },
+  "workspaces": [
+    "backend/*",
+    "infrastructure/*"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "turbo": "^2.0.13"
+  }
+}
