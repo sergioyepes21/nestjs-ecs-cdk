@@ -6,6 +6,9 @@
   "scripts": {
     "build": "turbo build",
     "test": "turbo test",
+    "bootstrap": "turbo bootstrap",
+    "deploy": "turbo deploy",
+    "destroy": "turbo destroy",
     "start:dev": "turbo start:dev",
     "start:prod": "turbo start:prod"
   },

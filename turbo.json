@@ -15,6 +15,15 @@
     "start:prod": {
       "persistent": true,
       "cache": true
+    },
+    "bootstrap": {
+      "dependsOn": ["^bootstrap"]
+    },
+    "deploy": {
+      "dependsOn": ["bootstrap", "^deploy"]
+    },
+    "destroy": {
+      "dependsOn": ["^destroy"]
     }
   }
 }

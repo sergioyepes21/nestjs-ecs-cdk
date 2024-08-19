@@ -2,12 +2,14 @@
 import 'dotenv/config';
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { ECSStack } from '../lib/stack';
+import { ALBFargateServiceStack, ECSStack } from '../lib';
 
 const app = new cdk.App();
-new ECSStack(app, 'NestJSECSStack', {
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
-  },
+
+const stack = new ECSStack(app, 'NestJSECSStack');
+
+new ALBFargateServiceStack(stack, 'NestJSECSALBStack', {
+  cluster: stack.cluster,
+  listener: stack.albListener,
+  resourceIdPrefix: stack.resourceIdPrefix,
 });

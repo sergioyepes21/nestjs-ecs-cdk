@@ -1,72 +1,66 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as ecr from 'aws-cdk-lib/aws-ecr';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as ecsp from 'aws-cdk-lib/aws-ecs-patterns';
 import {
-  ApiGatewayLoadBalancedFargateService,
-  VpcLinkIntegration,
-} from './agw-balanced-fargate-service';
+  ApplicationLoadBalancer,
+  ApplicationListener,
+} from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { Vpc } from 'aws-cdk-lib/aws-ec2';
+import { Cluster } from 'aws-cdk-lib/aws-ecs';
 
 export class ECSStack extends cdk.Stack {
+  public readonly resourceIdPrefix: string = 'NestJSECS';
+
+  private readonly vpc: Vpc;
+
+  public readonly cluster: Cluster;
+
+  public readonly applicationLoadBalancer: ApplicationLoadBalancer;
+
+  public readonly albListener: ApplicationListener;
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const vpc = new ec2.Vpc(this, 'NestJSECSVpc', {
-      natGateways: 1,
-    });
+    this.vpc = this.createVpc();
 
-    const cluster = new ecs.Cluster(this, 'NestJSECSCluster', {
+    this.cluster = this.createCluster();
+
+    this.applicationLoadBalancer = this.createApplicationLoadBalancer();
+
+    this.albListener = this.createALBListener();
+  }
+
+  private createResourceId(name: string): string {
+    return `${this.resourceIdPrefix}${name}`;
+  }
+
+  private createVpc(): Vpc {
+    return new Vpc(this, this.createResourceId('Vpc'), {
+      maxAzs: 2,
+    });
+  }
+
+  private createCluster(): Cluster {
+    return new Cluster(this, this.createResourceId('Cluster'), {
       clusterName: 'nestjs-ecs-cluster',
-      vpc,
-      enableFargateCapacityProviders: true,
+      vpc: this.vpc,
     });
+  }
 
-    cluster.addDefaultCapacityProviderStrategy([
-      { capacityProvider: 'FARGATE', base: 1, weight: 1 },
-    ]);
+  private createApplicationLoadBalancer(): ApplicationLoadBalancer {
+    return new ApplicationLoadBalancer(this, this.createResourceId('ALB'), {
+      vpc: this.vpc,
+      internetFacing: true,
+    });
+  }
 
-    const taskDefinition = new ecs.FargateTaskDefinition(
-      this,
-      'NestJSECSFargateTask',
+  private createALBListener(): ApplicationListener {
+    return this.applicationLoadBalancer.addListener(
+      this.createResourceId('ALBListener'),
       {
-        family: 'nestjs-ecs-task-definition',
-        memoryLimitMiB: 512,
-        cpu: 256,
+        port: 80,
+        open: true,
       },
     );
-
-    const containerRepository = new ecr.Repository(
-      this,
-      'NestJSBackendECRRepository',
-      {
-        repositoryName: 'nestjs-backend-repository',
-      },
-    );
-
-    taskDefinition.addContainer('NestJSECSFargateContainer', {
-      image: ecs.ContainerImage.fromEcrRepository(
-        containerRepository,
-        'latest',
-      ),
-      portMappings: [{ containerPort: 3001, name: 'default' }],
-      healthCheck: {
-        command: ['CMD-SHELL', 'curl -f http://localhost:3001'],
-        interval: cdk.Duration.seconds(60),
-        retries: 3,
-        startPeriod: cdk.Duration.seconds(60),
-        timeout: cdk.Duration.seconds(5),
-      },
-    });
-
-    new ApiGatewayLoadBalancedFargateService(this, 'NestJSECSFargateService', {
-      vpc,
-      cluster,
-      taskDefinition,
-      desiredCount: 1,
-      vpcLinkIntegration: VpcLinkIntegration.CLOUDMAP,
-    });
   }
 }
