@@ -8,8 +8,11 @@ const app = new cdk.App();
 
 const stack = new ECSStack(app, 'NestJSECSStack');
 
+const backendContainerPort = Number(process.env.BACKEND_CONTAINER_PORT) ?? 3001;
+
 new ALBFargateServiceStack(stack, 'NestJSECSALBStack', {
   cluster: stack.cluster,
   listener: stack.albListener,
+  containerPort: backendContainerPort,
   resourceIdPrefix: stack.resourceIdPrefix,
 });

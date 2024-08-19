@@ -23,6 +23,8 @@ export class ALBFargateServiceStack extends Stack {
 
   private readonly listener: ApplicationListener;
 
+  private readonly containerPort: number;
+
   private readonly resourceIdPrefix: string;
 
   private readonly taskDefinition: TaskDefinition;
@@ -31,11 +33,7 @@ export class ALBFargateServiceStack extends Stack {
 
   private readonly service: FargateService;
 
-  constructor(
-    scope: Construct,
-    id: string,
-    props: ALBFargateServiceProps,
-  ) {
+  constructor(scope: Construct, id: string, props: ALBFargateServiceProps) {
     super(scope, id, props);
 
     this.cluster = props.cluster;
@@ -89,7 +87,7 @@ export class ALBFargateServiceStack extends Stack {
         image: backendImageRepository,
         portMappings: [
           {
-            containerPort: 3001,
+            containerPort: this.containerPort,
             protocol: Protocol.TCP,
           },
         ],
@@ -119,7 +117,7 @@ export class ALBFargateServiceStack extends Stack {
       targets: [
         this.service.loadBalancerTarget({
           containerName: 'nestjs-ecs-container',
-          containerPort: 3001,
+          containerPort: this.containerPort,
         }),
       ],
       healthCheck: {

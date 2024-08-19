@@ -5,5 +5,6 @@ import { StackProps } from 'aws-cdk-lib';
 export interface ALBFargateServiceProps extends StackProps {
   cluster: Cluster;
   listener: ApplicationListener;
+  containerPort: number;
   resourceIdPrefix: string;
 }
