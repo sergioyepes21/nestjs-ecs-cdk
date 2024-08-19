@@ -82,7 +82,10 @@ npm install
 # Create a repository (if not already created)
 aws ecr create-repository --repository-name $REPOSITORY_NAME --region $AWS_REGION
 
-# Tag your Docker image
+# Build the Docker image
+docker build -t nestjs-ecs-cdk-backend-api -f ./backend/backend-api/Dockerfile .
+
+# Tag the Docker image
 docker tag nestjs-ecs-cdk-backend-api:latest $AWS_ACCOUNT_ID.dkr.ecr.AWS_REGION.amazonaws.com/$REPOSITORY_NAME:latest
 
 # Push the image to ECR
